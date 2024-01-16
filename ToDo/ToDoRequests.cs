@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using ToDosMinimalApi.ToDo;
 
@@ -10,12 +11,14 @@ public static class ToDoRequests
     {
         app.MapGet("/todos", ToDoRequests.GetAll)
             .Produces<List<ToDo>>()
-            .WithTags("To Dos");
+            .WithTags("To Dos")
+            .RequireAuthorization();
 
         app.MapGet("/todos/{id}", ToDoRequests.GetById)
             .Produces<ToDo>()
             .Produces(StatusCodes.Status404NotFound)
-            .WithTags("To Dos");
+            .WithTags("To Dos")
+            .AllowAnonymous();
 
 
         app.MapPost("/todos", ToDoRequests.Create)
@@ -57,13 +60,13 @@ public static class ToDoRequests
 
         return Results.Ok(todo);
     }
-
+    [Authorize]
     public static IResult Create(IToDoService service, ToDo toDo, IValidator<ToDo> validator) 
     {
         service.Create(toDo);
         return Results.Created($"/todos/{toDo.Id}", toDo);
     }
-
+    [AllowAnonymous]
     public static IResult Update(IToDoService service, Guid id, ToDo toDo, IValidator<ToDo> validator)
     {
         var todo = service.GetById(id);
